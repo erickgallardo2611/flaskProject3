@@ -43,7 +43,3 @@ def chat():  # put application's code here
         conn.closeConn()
         return render_template('chat bot.html', personas=personas)
 
-if __name__ == '__main__':
-
-    threading.Thread(target=app).start()
-    threading.Thread(target=test_bot).start()
