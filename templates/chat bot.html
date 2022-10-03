@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="static/regitrarCSS.css">
+    {% extends "Header.html" -%}
+</head>
+<body  style="font-family: prelo-medium, Helvetica, Arial, Sans, Sans-serif; max-width: 29.563rem">
+{% block content -%}
+
+    <div class="flex-container" style="background: lightgray; text-align: center; height: 55vh;">
+        <nav>
+            <canvas id="grafica" width="40" height="30"></canvas>
+            <div id="leyenda1" class="leyenda" style="color: black"></div>
+        </nav>
+
+<script>
+var miPastel=function(canvasId,width,height,valores) {
+	this.canvas=document.getElementById(canvasId);
+	this.canvas.width=width;
+	this.canvas.height=height;
+	this.radio=Math.min(this.canvas.width/2,this.canvas.height/2)
+	this.context=this.canvas.getContext("2d");
+	this.valores=valores;
+	this.tamanoDonut=0;
+
+	this.dibujar=function() {
+		this.total=this.getTotal();
+		var valor=0;
+		var inicioAngulo=0;
+		var angulo=0;
+
+		for(var i in this.valores)
+		{
+			valor=valores[i]["valor"];
+			color=valores[i]["color"];
+			angulo=2*Math.PI*valor/this.total;
+
+			this.context.fillStyle=color;
+			this.context.beginPath();
+			this.context.moveTo(this.canvas.width/2, this.canvas.height/2);
+			this.context.arc(this.canvas.width/2, this.canvas.height/2, this.radio, inicioAngulo, (inicioAngulo+angulo));
+			this.context.closePath();
+			this.context.fill();
+			inicioAngulo+=angulo;
+		}
+	}
+
+	this.dibujarDonut=function(tamano,color) {
+		this.tamanoDonut=tamano;
+		this.dibujar();
+
+		this.context.fillStyle=color;
+		this.context.beginPath();
+		this.context.moveTo(this.canvas.width/2, this.canvas.height/2);
+		this.context.arc(this.canvas.width/2, this.canvas.height/2, this.radio*tamano, 0, 2*Math.PI);
+		this.context.closePath();
+		this.context.fill();
+	}
+
+	this.ponerPorCiento=function(color){
+		var valor=0;
+		var etiquetaX=0;
+		var etiquetaY=0;
+		var inicioAngulo=0;
+		var angulo=0;
+		var texto="";
+		var incrementar=0;
+
+
+		if(this.tamanoDonut)
+			incrementar=(this.radio*this.tamanoDonut)/2;
+
+		this.context.font="bold 12pt Calibri";
+		this.context.fillStyle=color;
+		for(var i in this.valores)
+		{
+			valor=valores[i]["valor"];
+			angulo=2*Math.PI*valor/this.total;
+
+			etiquetaX=this.canvas.width/2+(incrementar+this.radio/2)*Math.cos(inicioAngulo+angulo/2);
+			etiquetaY=this.canvas.height/2+(incrementar+this.radio/2)*Math.sin(inicioAngulo+angulo/2);
+
+			texto=Math.round(100*valor/this.total);
+
+
+			if(etiquetaX<this.canvas.width/2)
+				etiquetaX-=10;
+
+			this.context.beginPath();
+			this.context.fillText(texto+"%", etiquetaX, etiquetaY);
+			this.context.stroke();
+
+			inicioAngulo+=angulo;
+		}
+	}
+	this.getTotal=function() {
+		var total=0;
+		for(var i in this.valores)
+		{
+			total+=valores[i]["valor"];
+		}
+		return total;
+	}
+
+	this.ponerLeyenda=function(leyendaId) {
+		var codigoHTML="<ul class='leyenda'>";
+
+		for(var i in this.valores)
+		{
+            codigoHTML+="<li style='list-style: none'>"+i+" <span style='display: inline-block;width: 1vh;height: 1vh;margin-right: 5px; background-color: "+valores[i]["color"]+"; '></span></li>";
+		}
+		codigoHTML+="</ul>";
+		document.getElementById(leyendaId).innerHTML=codigoHTML;
+	}
+}
+
+var valores={
+	"Registrados":{valor: {{personas}},color:"#0c1f50"},
+	"Espacio disponible":{valor:150-{{ personas }},color:"#ffdb00"},
+}
+
+var pastel=new miPastel("grafica",300,300,valores);
+pastel.dibujar();
+pastel.ponerPorCiento("white");
+pastel.ponerLeyenda("leyenda1");
+
+</script>
+
+
+
+
+
+    </div>
+
+    <div>
+            <div style="display: inline-block;justify-content: center;width: 100%; background: lightgray; text-align: center; height: 45vh;">
+            <form action="/chat_bot" method="post" >
+                <button onclick="eliminarPosible(10)" name = "personas" value="10" class="button" onclick="">Crear 10</button>
+                <button onclick="eliminarPosible(30)" name = "personas" value="30" class="button">Crear 30</button>
+                <button onclick="eliminarPosible(50)"name = "personas" value="50"class="button">Crear 50</button>
+                <button onclick="eliminarPosible(-10)" name = "personas" value="-10"class="button">Eliminar 10</button>
+                <button onclick="eliminarPosible(-30)" name = "personas" value="-30"class="button">Eliminar 30</button>
+                <button onclick="eliminarPosible(-50)" name = "personas" value="-50" class="button">Eliminar 50</button>
+            </form>
+        </div>
+    <script>
+        function eliminarPosible(value){
+            if(value < -1 * {{ personas }}){
+                alert("No es posible eliminar porque no existen suficientes recursos.");
+            }
+        }
+    </script>
+        </div>
+
+
+
+{%- endblock content %}
+
+</body>
+</html>
